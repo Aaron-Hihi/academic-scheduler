@@ -118,9 +118,9 @@ def run_scheduling_process():
     print("\n[DISPLAY] Individual Student Timetables:")
     visualize_student_schedules(STUDENT_DATA, final_schedule, graph)
 
-    print("\n=============================================")
+    print("\n================================================")
     print("=== PROCESS COMPLETE. CHECK 'output/' FOLDER ===")
-    print("=============================================")
+    print("================================================")
 
 if __name__ == '__main__':
     run_scheduling_process()
