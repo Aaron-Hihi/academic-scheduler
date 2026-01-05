@@ -1,3 +1,5 @@
+import csv
+import pandas as pd
 import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
@@ -130,3 +132,82 @@ def visualize_student_schedules(student_data, coloring_result, graph):
             row = f"{t:<{time_w}}" + "".join([f" | {grid[d][t].ljust(col_w)}" for d in days])
             print(row)
         print("-" * total_w)
+
+
+
+# Export to excel
+def export_to_excel(student_data, coloring_result, graph, course_data, filename='output/University_Schedule.xlsx'):
+    # 1. Prepare Student/Batch Data
+    student_rows = []
+    for sid, courses in student_data.items():
+        for c in courses:
+            if c in coloring_result:
+                day, start = coloring_result[c]
+                credits = graph.nodes[c]['credits']
+                end = get_end_time(start, get_duration_minutes(credits))
+                
+                student_rows.append({
+                    'Batch/Student ID': sid,
+                    'Subject': c,
+                    'Day': day,
+                    'Start': start,
+                    'End': end,
+                    'Credits': credits,
+                    'Lecturer': course_data[c]['lecturer'],
+                    'Room': course_data[c]['required_room']
+                })
+
+    # 2. Prepare Lecturer Data (Grouped by Lecturer)
+    lecturer_rows = sorted(student_rows, key=lambda x: (x['Lecturer'], x['Day'], x['Start']))
+
+    # 3. Create DataFrames
+    df_students = pd.DataFrame(student_rows)
+    df_lecturers = pd.DataFrame(lecturer_rows)
+
+    # 4. Save to multiple sheets
+    try:
+        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+            df_students.to_sheet_name = "Student Schedules"
+            df_students.to_excel(writer, sheet_name='Student Schedules', index=False)
+            
+            df_lecturers.to_excel(writer, sheet_name='Lecturer Schedules', index=False)
+            
+        print(f"[Log] Comprehensive Excel report generated: {filename}")
+    except Exception as e:
+        print(f"[Error] Failed to generate Excel: {e}")
+        
+        
+        
+        
+# Export to CSV
+def export_student_schedules_to_csv(student_data, coloring_result, graph, filename='output/student_schedules.csv'):
+    # Define the headers for the CSV
+    headers = ['Student ID', 'Batch', 'Subject', 'Day', 'Start Time', 'End Time', 'Credits']
+    
+    try:
+        with open(filename, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(headers)
+            
+            for sid, courses in student_data.items():
+                for c in courses:
+                    if c in coloring_result:
+                        day, start = coloring_result[c]
+                        # Retrieve credits and metadata from the graph nodes
+                        credits = graph.nodes[c]['credits']
+                        # Assuming get_end_time and get_duration_minutes are available in your scope
+                        end = get_end_time(start, get_duration_minutes(credits))
+                        
+                        # Write the row
+                        writer.writerow([
+                            sid,          # Student ID (e.g., BATCH25)
+                            sid,          # Batch (same as sid in your current logic)
+                            c,            # Subject Name
+                            day,          # Monday, Tuesday, etc.
+                            start,        # 07:00
+                            end,          # 10:00
+                            credits       # SKS
+                        ])
+        print(f"[Log] Student schedules successfully exported to {filename}")
+    except Exception as e:
+        print(f"[Error] Failed to write CSV: {e}")

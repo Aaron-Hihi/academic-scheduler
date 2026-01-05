@@ -11,77 +11,19 @@ from visualization import (
     visualize_colored_graph,
     visualize_credits_load,
     visualize_schedule_matrix,
-    visualize_student_schedules
+    visualize_student_schedules,
+    export_student_schedules_to_csv,
+    export_to_excel
 )
 
 # --- COURSE DATA DEFINITION ---
 # Comprehensive list of courses with lecturer, credits, and room requirements
-COURSE_DATA = {
-    'MK01-A': {'lecturer': 'D01', 'credits': 3, 'required_room': 'R01', 'class': 'A'},
-    'MK01-B': {'lecturer': 'D01', 'credits': 3, 'required_room': 'R01', 'class': 'B'},
-    'MK02-A': {'lecturer': 'D02', 'credits': 3, 'required_room': 'R02', 'class': 'A'},
-    'MK02-B': {'lecturer': 'D02', 'credits': 3, 'required_room': 'R02', 'class': 'B'},
-    'MK03-A': {'lecturer': 'D03', 'credits': 3, 'required_room': 'R03', 'class': 'A'},
-    'MK03-B': {'lecturer': 'D03', 'credits': 3, 'required_room': 'R03', 'class': 'B'},
-    'MK04-A': {'lecturer': 'D04', 'credits': 3, 'required_room': 'R04', 'class': 'A'},
-    'MK04-B': {'lecturer': 'D04', 'credits': 3, 'required_room': 'R04', 'class': 'B'},
-    'MK05-A': {'lecturer': 'D05', 'credits': 3, 'required_room': 'R05', 'class': 'A'},
-    'MK05-B': {'lecturer': 'D05', 'credits': 3, 'required_room': 'R05', 'class': 'B'},
-    'MK06-A': {'lecturer': 'D06', 'credits': 3, 'required_room': 'R06', 'class': 'A'},
-    'MK06-B': {'lecturer': 'D06', 'credits': 3, 'required_room': 'R06', 'class': 'B'},
-    'MK07-A': {'lecturer': 'D07', 'credits': 3, 'required_room': 'R07', 'class': 'A'},
-    'MK07-B': {'lecturer': 'D07', 'credits': 3, 'required_room': 'R07', 'class': 'B'},
-    'MK08-A': {'lecturer': 'D08', 'credits': 3, 'required_room': 'R08', 'class': 'A'},
-    'MK08-B': {'lecturer': 'D08', 'credits': 3, 'required_room': 'R08', 'class': 'B'},
-    'MK09-A': {'lecturer': 'D09', 'credits': 3, 'required_room': 'R09', 'class': 'A'},
-    'MK09-B': {'lecturer': 'D09', 'credits': 3, 'required_room': 'R09', 'class': 'B'},
-    'MK10-A': {'lecturer': 'D10', 'credits': 3, 'required_room': 'R10', 'class': 'A'},
-    'MK10-B': {'lecturer': 'D10', 'credits': 3, 'required_room': 'R10', 'class': 'B'},
-    'MK11-A': {'lecturer': 'D11', 'credits': 3, 'required_room': 'R01', 'class': 'A'}, 
-    'MK11-B': {'lecturer': 'D11', 'credits': 3, 'required_room': 'R01', 'class': 'B'},
-    'MK12-A': {'lecturer': 'D12', 'credits': 3, 'required_room': 'R02', 'class': 'A'}, 
-    'MK12-B': {'lecturer': 'D12', 'credits': 3, 'required_room': 'R02', 'class': 'B'},
-    'MK13-A': {'lecturer': 'D13', 'credits': 4, 'required_room': 'R03', 'class': 'A'}, 
-    'MK13-B': {'lecturer': 'D13', 'credits': 4, 'required_room': 'R03', 'class': 'B'},
-    'MK14-A': {'lecturer': 'D14', 'credits': 4, 'required_room': 'R04', 'class': 'A'}, 
-    'MK14-B': {'lecturer': 'D14', 'credits': 4, 'required_room': 'R04', 'class': 'B'},
-    'MK15-A': {'lecturer': 'D15', 'credits': 4, 'required_room': 'R05', 'class': 'A'}, 
-    'MK15-B': {'lecturer': 'D15', 'credits': 4, 'required_room': 'R05', 'class': 'B'},
-    'MK16-A': {'lecturer': 'D01', 'credits': 4, 'required_room': 'R06', 'class': 'A'}, 
-    'MK16-B': {'lecturer': 'D01', 'credits': 4, 'required_room': 'R06', 'class': 'B'},
-    'MK17-A': {'lecturer': 'D02', 'credits': 4, 'required_room': 'R07', 'class': 'A'}, 
-    'MK17-B': {'lecturer': 'D02', 'credits': 4, 'required_room': 'R07', 'class': 'B'},
-    'MK18-A': {'lecturer': 'D03', 'credits': 4, 'required_room': 'R08', 'class': 'A'}, 
-    'MK18-B': {'lecturer': 'D03', 'credits': 4, 'required_room': 'R08', 'class': 'B'},
-    'MK19': {'lecturer': 'D04', 'credits': 5, 'required_room': 'R09', 'class': 'Joint'}, 
-    'MK20': {'lecturer': 'D05', 'credits': 5, 'required_room': 'R10', 'class': 'Joint'},
-    'MK21': {'lecturer': 'D06', 'credits': 5, 'required_room': 'R01', 'class': 'Joint'},
-    'MK22': {'lecturer': 'D07', 'credits': 5, 'required_room': 'R02', 'class': 'Joint'},
-    'MK23': {'lecturer': 'D08', 'credits': 5, 'required_room': 'R03', 'class': 'Joint'},
-    'MK24': {'lecturer': 'D09', 'credits': 5, 'required_room': 'R04', 'class': 'Joint'},
-    'MK25': {'lecturer': 'D10', 'credits': 5, 'required_room': 'R05', 'class': 'Joint'},
-    'MK26': {'lecturer': 'D11', 'credits': 5, 'required_room': 'R06', 'class': 'Joint'},
-    'MK27': {'lecturer': 'D12', 'credits': 5, 'required_room': 'R07', 'class': 'Joint'},
-    'MK28': {'lecturer': 'D13', 'credits': 5, 'required_room': 'R08', 'class': 'Joint'},
-    'MK29': {'lecturer': 'D14', 'credits': 5, 'required_room': 'R09', 'class': 'Joint'},
-    'MK30': {'lecturer': 'D15', 'credits': 5, 'required_room': 'R10', 'class': 'Joint'},
-}
 # Import data from file
 with open('courses.json', 'r') as file:
     COURSE_DATA = json.load(file)
 
 # --- STUDENT ENROLLMENT DATA ---
 # Mapping of students to their respective sets of enrolled courses
-STUDENT_DATA = {
-    'MHS101': {'MK01-A', 'MK02-A', 'MK03-A', 'MK04-A', 'MK13-A', 'MK14-A'},
-    'MHS102': {'MK05-B', 'MK06-B', 'MK07-B', 'MK08-B', 'MK15-B', 'MK16-B'},
-    'MHS103': {'MK09-A', 'MK10-A', 'MK17-A', 'MK19', 'MK20'}, 
-    'MHS104': {'MK11-B', 'MK12-B', 'MK18-B', 'MK21', 'MK22'}, 
-    'MHS105': {'MK13-A', 'MK15-A', 'MK23', 'MK24'},
-    'MHS106': {'MK14-B', 'MK16-B', 'MK25', 'MK26'}, 
-    'MHS107': {'MK27', 'MK29'},
-    'MHS108': {'MK28', 'MK30'},
-}
 # Import data
 with open('curriculum.json', 'r') as file:
     raw_data = json.load(file)
@@ -126,6 +68,12 @@ def run_scheduling_process():
     print("\n--- 4. FINALIZING REPORTS ---")
     visualize_credits_load(final_load, 'output/2_final_credits_load.png')
     visualize_colored_graph(graph, final_schedule, 'output/3_colored_schedule.png') 
+    
+    # output to csv file
+    export_student_schedules_to_csv(STUDENT_DATA, final_schedule, graph, 'output/student_timetables.csv')
+    
+    # Export to excel file
+    export_to_excel(STUDENT_DATA, final_schedule, graph, COURSE_DATA)
     
     print("\n[DISPLAY] University Master Matrix:")
     visualize_schedule_matrix(graph, final_schedule) 

@@ -1,0 +1,26 @@
+Student ID,Batch,Subject,Day,Start Time,End Time,Credits
+BATCH25,BATCH25,Operating System-A,Monday,10:00,12:30,3
+BATCH25,BATCH25,Visual Programming-A,Tuesday,11:40,15:50,5
+BATCH25,BATCH25,Web Development-A,Wednesday,07:30,10:50,4
+BATCH25,BATCH25,Entrepreneurship Essentials-A,Thursday,07:30,10:00,3
+BATCH25,BATCH25,Menjadi Indonesia-A,Monday,07:30,10:00,3
+BATCH26,BATCH26,Object-Oriented Programming-B,Wednesday,10:50,14:10,4
+BATCH26,BATCH26,Database-B,Wednesday,14:10,16:40,3
+BATCH26,BATCH26,Calculus-B,Monday,14:10,15:50,2
+BATCH26,BATCH26,Web Programming-B,Thursday,07:30,10:50,4
+BATCH26,BATCH26,Computer Organization and Architecture-B,Friday,10:00,12:30,3
+BATCH27,BATCH27,Algorithm & Programming-A,Monday,10:00,14:10,5
+BATCH27,BATCH27,Object-Oriented Programming-A,Thursday,10:50,14:10,4
+BATCH27,BATCH27,Web Programming-A,Friday,07:30,10:50,4
+BATCH27,BATCH27,Database-A,Tuesday,10:00,12:30,3
+BATCH27,BATCH27,Linear Algebra-A,Wednesday,07:30,10:00,3
+BATCH28,BATCH28,Pancasila-B,Thursday,07:30,09:10,2
+BATCH28,BATCH28,Algorithm & Programming-B,Tuesday,07:30,11:40,5
+BATCH28,BATCH28,Religion-B,Thursday,10:50,12:30,2
+BATCH28,BATCH28,Introduction to Information and Communication Technology-B,Friday,09:10,10:50,2
+BATCH28,BATCH28,Calculus-B,Monday,14:10,15:50,2
+BATCH29,BATCH29,Algorithm & Programming-A,Monday,10:00,14:10,5
+BATCH29,BATCH29,Pancasila-A,Tuesday,09:10,10:50,2
+BATCH29,BATCH29,Religion-A,Tuesday,07:30,09:10,2
+BATCH29,BATCH29,Linear Algebra-A,Wednesday,07:30,10:00,3
+BATCH29,BATCH29,Introduction to Information and Communication Technology-A,Friday,07:30,09:10,2
