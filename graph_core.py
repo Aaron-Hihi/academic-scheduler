@@ -58,20 +58,21 @@ def is_safe_to_place(graph, course, day, start_time, current_schedule):
 def standard_greedy_coloring(graph):
     nodes_sorted = sorted(graph.nodes(), key=lambda n: graph.degree[n], reverse=True)
     result = {}
-    slot_usage = {(d, t): 0 for d in CONFIG['DAYS'] for t in AVAILABLE_START_TIMES}
-
+    
     for course in nodes_sorted:
-        potential = []
+        placed = False
         for day in CONFIG['DAYS']:
             for start in AVAILABLE_START_TIMES:
                 if is_safe_to_place(graph, course, day, start, result):
-                    potential.append((day, start))
+                    result[course] = (day, start)
+                    placed = True
+                    break
+            if placed: break
         
-        if potential:
-            best_slot = min(potential, key=lambda s: slot_usage[s])
-            result[course] = best_slot
-            slot_usage[best_slot] += 1
-            
+        if not placed:
+            print(f"[Warning] {course} failed to find a slot. Finding conflicting slot...")
+            result[course] = (CONFIG['DAYS'][0], AVAILABLE_START_TIMES[0]) 
+
     return result
 
 # --- LOAD CALCULATIONS ---
