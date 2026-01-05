@@ -1,352 +1,151 @@
 import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
-import pandas as pd
 from matplotlib.patches import Patch
-from datetime import datetime, timedelta
+from config import (
+    CONFIG, 
+    AVAILABLE_START_TIMES, 
+    get_duration_minutes, 
+    get_end_time
+)
 
-# Use the 'Agg' backend for non-interactive environments (like servers)
+# --- GLOBAL SETTINGS ---
+# Set the backend to Agg to allow image generation without a display server
 matplotlib.use('Agg')
 
-# --- TIME HELPER FUNCTIONS (Redefine or import from graph_core) ---
-# Redefined here to keep the visualization module self-contained and less reliant on graph_core's internal structure.
+# --- CONFLICT NETWORK VISUALIZATION ---
+# Generates a graph showing courses as nodes and constraints as connecting edges
+def visualize_conflict_graph(graph, filename='conflict_graph.png'):
+    pos = nx.spring_layout(graph, seed=42)
+    plt.figure(figsize=(12, 8))
+    plt.title("Course Conflict Network Structure")
 
-def get_duration_minutes(sks):
-    """Converts SKS (credit hours) to total duration in minutes (1 SKS = 50 minutes)."""
-    return sks * 50
-
-def get_end_time(start_time_str, duration_minutes):
-    """Calculates the end time from a start time string and a given duration."""
-    dummy_date = datetime.strptime(start_time_str, '%H:%M')
-    end_time = dummy_date + timedelta(minutes=duration_minutes)
-    return end_time.strftime('%H:%M')
-
-# --- GRAPH VISUALIZATION ---
-
-def visualize_conflict_graph(G, filename='conflict_graph.png'):
-    """Visualizes the structure of graph G (nodes = courses, edges = conflicts)."""
-    pos = nx.spring_layout(G, seed=42)
-    plt.figure(figsize=(10, 7))
-    plt.title("Scheduling Conflict Graph Structure")
-
-    # Node size based on SKS (larger SKS means larger node)
-    node_sizes = [d.get('sks', 1) * 200 for n, d in G.nodes(data=True)]
+    node_sizes = [graph.nodes[n].get('credits', 1) * 300 for n in graph.nodes()]
     
-    nx.draw_networkx_nodes(G,
-                        pos,
-                        node_size=node_sizes,
-                        node_color='lightblue',
-                        edgecolors='black',
-                        alpha=0.8)
-    nx.draw_networkx_edges(G, pos, edge_color='gray', alpha=0.6)
-
-    node_labels = {node: node for node in G.nodes()}
-    nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=10)
+    nx.draw_networkx_nodes(graph, pos, node_size=node_sizes, node_color='skyblue', 
+                           edgecolors='black', alpha=0.8)
+    nx.draw_networkx_edges(graph, pos, edge_color='silver', alpha=0.5)
+    nx.draw_networkx_labels(graph, pos, font_size=9)
 
     plt.axis('off')
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Conflict graph saved to: {filename}")
 
+# --- SCHEDULING COLOR MAP ---
+# Maps the final schedule results onto the graph topology using colors for time slots
+def visualize_colored_graph(graph, coloring_result, filename='colored_graph.png'):
+    pos = nx.spring_layout(graph, seed=42)
+    fig, ax = plt.subplots(figsize=(14, 10))
+    ax.set_title("Final Scheduling Results (Graph Coloring)")
 
-def visualize_colored_graph(G,
-                            coloring_result,
-                            filename='colored_graph.png'):
-    """Visualizes the graph after coloring (scheduling)."""
-    pos = nx.spring_layout(G, seed=42)
-    fig, ax = plt.subplots(figsize=(10, 7))
-    ax.set_title("Scheduling Result (Graph Coloring)")
-
-    # The unique 'colors' are now tuples (Day, Start_Time)
-    # Handle nodes that failed to be scheduled
-    UNSCHEDULED_COLOR = ('UNSCHEDULED', '00:00')
-
-    # Get all unique colors, including UNSCHEDULED if needed
-    all_colors = set(coloring_result.values())
-    if len(G.nodes()) != len(coloring_result):
-        all_colors.add(UNSCHEDULED_COLOR)
-
-    unique_colors = sorted(list(all_colors))
-    color_map = {color: i for i, color in enumerate(unique_colors)}
+    all_slots = sorted(list(set((str(d), str(t)) for d, t in coloring_result.values())))
+    slot_to_index = {slot: i for i, slot in enumerate(all_slots)}
     
-    # Assign color index to each node
-    node_colors = [
-        color_map[coloring_result.get(node, UNSCHEDULED_COLOR)]
-        for node in G.nodes()
-    ]
+    node_colors = [slot_to_index[(str(coloring_result[n][0]), str(coloring_result[n][1]))] 
+                   for n in graph.nodes()]
 
-    cmap = plt.colormaps.get_cmap('Spectral').resampled(len(unique_colors))
+    cmap = plt.colormaps.get_cmap('Spectral').resampled(len(all_slots))
 
-    nx.draw_networkx(G,
-                    pos,
-                    node_color=node_colors,
-                    cmap=cmap,
-                    node_size=300,
-                    with_labels=True,
-                    font_size=8,
-                    edge_color='gray',
-                    alpha=0.8,
-                    ax=ax)
+    nx.draw_networkx(graph, pos, node_color=node_colors, cmap=cmap, node_size=400,
+                    with_labels=True, font_size=7, edge_color='gray', alpha=0.8, ax=ax)
 
-    # Create legend labels (Day, Start_Time)
     legend_elements = [
-        Patch(facecolor=cmap(i / (len(unique_colors) - 1) if len(unique_colors) > 1 else 0),
-            label=f"{day} ({start_time})"
-            if day != 'UNSCHEDULED' else "Failed to Schedule")
-        for i, (day, start_time) in enumerate(unique_colors)
+        Patch(facecolor=cmap(i / (len(all_slots) - 1) if len(all_slots) > 1 else 0),
+              label=f"{slot[0]} ({slot[1]})")
+        for i, slot in enumerate(all_slots)
     ]
-    ax.legend(handles=legend_elements,
-            title='Time Slot (Day, Start)',
-            loc='upper left',
-            fontsize=8)
+    
+    ax.legend(handles=legend_elements, title='Time Slots', loc='upper left', 
+              bbox_to_anchor=(1, 1), fontsize=8)
 
     ax.axis('off')
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Colored graph saved to: {filename}")
 
+# --- CREDIT LOAD ANALYSIS ---
+# Produces a bar chart comparing total credit distribution against the weekly average
+def visualize_credits_load(daily_load, filename='credits_load.png'):
+    days = CONFIG['DAYS']
+    credit_counts = [daily_load.get(day, 0) for day in days]
 
-def visualize_sks_load(daily_load, filename='sks_load.png'):
-    """Visualizes the total SKS load per day."""
-    days = list(daily_load.keys())
-    sks_counts = list(daily_load.values())
+    plt.figure(figsize=(10, 6))
+    plt.bar(days, credit_counts, color='darkslateblue')
 
-    plt.figure(figsize=(8, 5))
-    plt.bar(days, sks_counts, color='teal')
+    avg_credits = sum(credit_counts) / len(days)
+    plt.axhline(avg_credits, color='crimson', linestyle='--', label=f'Avg Load ({avg_credits:.2f})')
 
-    average_sks = sum(sks_counts) / len(sks_counts)
-
-    plt.axhline(average_sks,
-                color='red',
-                linestyle='--',
-                label=f'Average SKS ({average_sks:.2f})')
-
-    plt.xlabel("Day")
-    plt.ylabel("Total SKS")
-    plt.title("Daily SKS Load Balancing (Equitable Coloring Result)")
+    plt.ylabel("Total Credit Hours (SKS)")
+    plt.title("Daily Credit Load Distribution")
     plt.legend()
-    plt.grid(axis='y', linestyle='--')
+    plt.grid(axis='y', alpha=0.3)
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"SKS load chart saved to: {filename}")
+    print(f"Credit load chart saved to: {filename}")
 
+# --- UNIVERSITY MASTER TABLE ---
+# Renders a complete, formatted ASCII matrix of all scheduled courses
+def visualize_schedule_matrix(graph, coloring_result):
+    days = CONFIG['DAYS']
+    times = AVAILABLE_START_TIMES
+    cell_map = {d: {t: [] for t in times} for d in days}
 
-# --- MATRIX SCHEDULE VISUALIZATION ---
+    for course, (day, start) in coloring_result.items():
+        if day in days and start in cell_map[day]:
+            credits = graph.nodes[course]['credits']
+            end = get_end_time(start, get_duration_minutes(credits))
+            cell_map[day][start].append(f"{course} ({credits} SKS, {start}-{end})")
 
+    col_widths = {d: max(len(d), 25) for d in days}
+    for d in days:
+        for t in times:
+            if cell_map[d][t]:
+                max_content = max(len(item) for item in cell_map[d][t])
+                col_widths[d] = max(col_widths[d], max_content)
 
-def visualize_schedule_matrix(G, coloring_result, relevant_days=None):
-    """
-    Visualizes the coloring result as an ASCII schedule table (Day vs Start Time).
-    Handles multi-line cells for multiple courses in the same slot.
-    """
+    time_w = 7
+    total_w = time_w + sum(col_widths.values()) + (len(days) * 3) + 2
+    sep = "=" * total_w
 
-    # --- DATA PRE-PROCESSING ---
-    # Helper functions must be available locally or imported
-    def get_duration_minutes(sks):
-        return sks * 50
+    print(f"\n{sep}\n{' UNIVERSITY MASTER SCHEDULE '.center(total_w, '=')}\n{sep}")
+    header = f"{'Time':<{time_w}}" + "".join([f" | {d.ljust(col_widths[d])}" for d in days])
+    print(header + f"\n{'-' * total_w}")
 
-    def get_end_time(start_time, duration):
-        try:
-            start_dt = datetime.strptime(start_time, '%H:%M')
-            end_dt = start_dt + timedelta(minutes=duration)
-            return end_dt.strftime('%H:%M')
-        except ValueError:
-            return "??:??"
+    for t in times:
+        max_depth = max(len(cell_map[d][t]) for d in days)
+        for i in range(max_depth):
+            row = f"{t.ljust(time_w)}" if i == 0 else " " * time_w
+            for d in days:
+                content = cell_map[d][t][i] if i < len(cell_map[d][t]) else ""
+                row += f" | {content.ljust(col_widths[d])}"
+            print(row)
+        if max_depth > 0: print("-" * total_w)
 
-    if relevant_days is None:
-        relevant_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+# --- STUDENT INDIVIDUAL REPORTS ---
+# Generates personalized time tables for every student in the dataset
+def visualize_student_schedules(student_data, coloring_result, graph):
+    days = CONFIG['DAYS']
+    times = AVAILABLE_START_TIMES
+    col_w, time_w = 28, 7
+    total_w = time_w + (len(days) * (col_w + 3)) + 1
 
-    # Get all unique start times, sorted
-    all_start_times = sorted(
-        list(set(start for day, start in coloring_result.values())))
+    print("\n" + "#" * 60 + f"\n{' INDIVIDUAL STUDENT REPORTS '.center(60, '#')}\n" + "#" * 60)
 
-    # Data structure: {Day: {Start_Time: [Course Info...]}}
-    cell_data = {
-        day: {start: []
-              for start in all_start_times}
-        for day in relevant_days
-    }
+    for sid, courses in student_data.items():
+        grid = {d: {t: "" for t in times} for d in days}
+        for c in courses:
+            if c in coloring_result:
+                d, s = coloring_result[c]
+                cred = graph.nodes[c]['credits']
+                grid[d][s] = f"{c} ({s}-{get_end_time(s, get_duration_minutes(cred))})"
 
-    for course, (day, start_time) in coloring_result.items():
-        if day in relevant_days:
-            sks = G.nodes[course]['sks']
-            duration = get_duration_minutes(sks)
-            end_time = get_end_time(start_time, duration)
+        print(f"\n[ Student ID: {sid} ]\n{'-' * total_w}")
+        header = f"{'Time':<{time_w}}" + "".join([f" | {d.ljust(col_w)}" for d in days])
+        print(f"{header}\n{'-' * total_w}")
 
-            # Info to be placed in the cell
-            info = f"{course} ({sks} SKS, {start_time}-{end_time})"
-            cell_data[day][start_time].append(info)
-
-    # 2. COLUMN WIDTH CALCULATION
-
-    max_time_width = 5  # 'HH:MM'
-    min_content_width = 30  # Minimum width for course content
-
-    # Calculate max column width for each day
-    col_widths = {day: len(day) for day in relevant_days}
-    for day in relevant_days:
-        max_content_len = len(day)
-        for start_time in all_start_times:
-            if cell_data[day][start_time]:
-                max_content_len = max(
-                    max_content_len, max(len(item) for item in cell_data[day][start_time]))
-
-        col_widths[day] = max(max_content_len, min_content_width)
-
-    # Total line width calculation
-    total_width = max_time_width + sum(col_widths.values()) + (len(relevant_days) * 3) + 4
-
-    # 3. PRINTING THE ASCII TABLE
-
-    # Header
-    print("\n" + "=" * total_width)
-    print(f" CLASS MATRIX SCHEDULE (DAY VS START TIME) ".center(total_width, '='))
-    print("=" * total_width)
-
-    # Day Names Row
-    header_line = f"{'Time':<{max_time_width}}"
-    for day in relevant_days:
-        header_line += f" | {day.ljust(col_widths[day])}"
-    print(header_line)
-    print("-" * total_width)
-
-    # Content Rows (Iterate over Start Times)
-    for start_time in all_start_times:
-
-        # Find Max Row Height (Most courses in this time slot)
-        max_height = 0
-        row_content = {}
-        for day in relevant_days:
-            content = cell_data[day][start_time]
-            row_content[day] = content
-            max_height = max(max_height, len(content))
-
-        # Print rows vertically (Handling Multi-Line Cells)
-        for i in range(max_height):
-            line = ""
-            # Print Start Time only on the first line
-            if i == 0:
-                line += f"{start_time.ljust(max_time_width)}"
-            else:
-                line += f"{' '.ljust(max_time_width)}"
-
-            for day in relevant_days:
-                # Get the i-th course from that day (or an empty string)
-                course_info = row_content[day][i] if i < len(
-                    row_content[day]) else ""
-
-                line += f" | {course_info.ljust(col_widths[day])}"
-
-            print(line)
-
-        print("-" * total_width)
-
-    print("=" * total_width + "\n")
-    return
-
-
-# --- INDIVIDUAL STUDENT SCHEDULE VISUALIZATION ---
-
-def visualize_student_schedule(data_mahasiswa, coloring_result, G):
-    """
-    Creates and displays a summarized schedule per student
-    using a custom ASCII table format (Day, Start Time - End Time).
-    """
-
-    # Helper functions must be available
-    def get_duration_minutes(sks):
-        return sks * 50
-
-    def get_end_time(start_time, duration):
-        try:
-            start_dt = datetime.strptime(start_time, '%H:%M')
-            end_dt = start_dt + timedelta(minutes=duration)
-            return end_dt.strftime('%H:%M')
-        except ValueError:
-            return "??:??"
-
-    print("\n" + "=" * 80)
-    print(
-        " INDIVIDUAL STUDENT CLASS SCHEDULE ".center(80, '=')
-    )
-    print("=" * 80)
-
-    # Get all unique used start times and days
-    all_start_times = sorted(
-        list(set(start for day, start in coloring_result.values())))
-    all_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-
-    # Determine maximum column width across all student schedules
-    MIN_COL_WIDTH = 25
-
-    # Calculating the total line width
-    max_time_width = 5
-    total_width = max_time_width + len(all_days) * (MIN_COL_WIDTH + 3) + 4
-
-    for mhs_id, matkul_set in data_mahasiswa.items():
-
-        # 1. DATA PRE-PROCESSING FOR THIS STUDENT
-        cell_data = {
-            day: {start: [] for start in all_start_times}
-            for day in all_days
-        }
-
-        for course in matkul_set:
-            if course in coloring_result:
-                day, start_time = coloring_result[course]
-                if day in all_days and start_time in all_start_times:
-                    sks = G.nodes[course]['sks']
-                    duration = get_duration_minutes(sks)
-                    end_time = get_end_time(start_time, duration)
-
-                    # Store course info in the cell
-                    info = f"{course} ({sks} SKS, {start_time}-{end_time})"
-                    cell_data[day][start_time].append(info)
-
-        # 2. PRINTING THE ASCII STUDENT TABLE
-        print(f"\n--- Student ID: {mhs_id} ---")
-
-        # Day Names Row
-        header_line = f"{'Time':<{max_time_width}}"
-        for day in all_days:
-            header_line += f" | {day.ljust(MIN_COL_WIDTH)}"
-
-        print("-" * total_width)
-        print(header_line)
-        print("-" * total_width)
-
-        # Content Rows (Iterate over Start Times)
-        for start_time in all_start_times:
-
-            # Find Max Row Height
-            max_height = 0
-            row_content = {}
-            for day in all_days:
-                content = cell_data[day][start_time]
-                row_content[day] = content
-                max_height = max(max_height, len(content))
-
-            # Print rows vertically (Handling Multi-Line Cells)
-            for i in range(max_height):
-                line = ""
-                # Print Start Time only on the first line
-                if i == 0:
-                    line += f"{start_time.ljust(max_time_width)}"
-                else:
-                    line += f"{' '.ljust(max_time_width)}"
-
-                for day in all_days:
-                    # Get the i-th course (or empty string)
-                    course_info = row_content[day][i] if i < len(row_content[day]) else ""
-
-                    # Use ljust() to ensure consistent width
-                    line += f" | {course_info.ljust(MIN_COL_WIDTH)}"
-
-                print(line)
-
-            # Print separator line if there was content in this time slot
-            if max_height > 0:
-                print("-" * total_width)
-
-    print("=" * 80 + "\n")
-    return
+        for t in times:
+            if any(grid[d][t] != "" for d in days):
+                row = f"{t.ljust(time_w)}" + "".join([f" | {grid[d][t].ljust(col_w)}" for d in days])
+                print(row)
+        print("-" * total_w)
