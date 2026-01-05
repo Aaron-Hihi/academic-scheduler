@@ -134,45 +134,77 @@ def visualize_student_schedules(student_data, coloring_result, graph):
         print("-" * total_w)
 
 
+def get_duration(credits):
+    return credits * 50
 
 # Export to excel
 def export_to_excel(student_data, coloring_result, graph, course_data, filename='output/University_Schedule.xlsx'):
-    # 1. Prepare Student/Batch Data
-    student_rows = []
-    for sid, courses in student_data.items():
-        for c in courses:
-            if c in coloring_result:
-                day, start = coloring_result[c]
-                credits = graph.nodes[c]['credits']
-                end = get_end_time(start, get_duration_minutes(credits))
-                
-                student_rows.append({
-                    'Batch/Student ID': sid,
-                    'Subject': c,
-                    'Day': day,
-                    'Start': start,
-                    'End': end,
-                    'Credits': credits,
-                    'Lecturer': course_data[c]['lecturer'],
-                    'Room': course_data[c]['required_room']
-                })
-
-    # 2. Prepare Lecturer Data (Grouped by Lecturer)
-    lecturer_rows = sorted(student_rows, key=lambda x: (x['Lecturer'], x['Day'], x['Start']))
-
-    # 3. Create DataFrames
-    df_students = pd.DataFrame(student_rows)
-    df_lecturers = pd.DataFrame(lecturer_rows)
-
-    # 4. Save to multiple sheets
+    days = CONFIG['DAYS']
+    # Include END_LIMIT just like your console grid
+    times = AVAILABLE_START_TIMES + [CONFIG['END_LIMIT']]
+    
     try:
         with pd.ExcelWriter(filename, engine='openpyxl') as writer:
-            df_students.to_sheet_name = "Student Schedules"
-            df_students.to_excel(writer, sheet_name='Student Schedules', index=False)
-            
-            df_lecturers.to_excel(writer, sheet_name='Lecturer Schedules', index=False)
-            
-        print(f"[Log] Comprehensive Excel report generated: {filename}")
+            start_row = 0
+            # Initialize sheet by writing an empty dataframe
+            pd.DataFrame().to_excel(writer, sheet_name='Calendar View')
+            worksheet = writer.sheets['Calendar View']
+
+            for sid, courses in student_data.items():
+                # 1. Create the grid logic (Mirroring your visualize_student_schedules function)
+                grid_data = {d: {t: "" for t in times} for d in days}
+                
+                for c in courses:
+                    if c in coloring_result:
+                        day, start = coloring_result[c]
+                        credits = graph.nodes[c]['credits']
+                        end = get_end_time(start, get_duration(credits))
+                        label = f"{c}\n({start}-{end})\n{course_data[c]['required_room']}"
+                        
+                        try:
+                            start_idx = AVAILABLE_START_TIMES.index(start)
+                            for i in range(credits):
+                                if start_idx + i < len(AVAILABLE_START_TIMES):
+                                    current_slot = AVAILABLE_START_TIMES[start_idx + i]
+                                    # First slot gets the full label, others get the continuation marker
+                                    grid_data[day][current_slot] = label if i == 0 else f"^ (cont. {c})"
+                            
+                            # Add Finish Marker
+                            if end in grid_data[day] and grid_data[day][end] == "":
+                                grid_data[day][end] = f"[Finishes {c}]"
+                        except ValueError:
+                            continue # Start time not in AVAILABLE_START_TIMES
+
+                # 2. Convert grid to DataFrame for this Batch
+                df_batch = pd.DataFrame.from_dict(grid_data, orient='columns')
+                # Ensure days order matches CONFIG
+                df_batch = df_batch[days]
+
+                # 3. Write Batch Header and Table to Excel
+                worksheet.cell(row=start_row + 1, column=1, value=f"### STUDENT REPORT: {sid} ###")
+                df_batch.to_excel(writer, sheet_name='Calendar View', startrow=start_row + 1)
+
+                # 4. Increment start_row for next batch (table height + header + spacing)
+                start_row += len(times) + 4
+
+            # --- Formatting for readability ---
+            for col in worksheet.columns:
+                column_letter = col[0].column_letter
+                worksheet.column_dimensions[column_letter].width = 25
+                # Enable text wrapping for the multi-line labels
+                for cell in col:
+                    cell.alignment = cell.alignment.copy(wrapText=True, vertical='top')
+
+            # Also save a simple Raw Data List on another sheet
+            raw_rows = []
+            for sid, courses in student_data.items():
+                for c in courses:
+                    if c in coloring_result:
+                        d, t = coloring_result[c]
+                        raw_rows.append({'Batch': sid, 'Subject': c, 'Day': d, 'Time': t})
+            pd.DataFrame(raw_rows).to_excel(writer, sheet_name='Raw Data List', index=False)
+
+        print(f"[Log] Excel Calendar (Console-style) generated: {filename}")
     except Exception as e:
         print(f"[Error] Failed to generate Excel: {e}")
         
