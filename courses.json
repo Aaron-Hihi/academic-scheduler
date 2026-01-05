@@ -1,0 +1,182 @@
+{
+    "Algorithm & Programming-A": {
+        "lecturer": "Dr. Andreas",
+        "credits": 5,
+        "required_room": "Lab Computer",
+        "class": "A"
+    },
+    "Algorithm & Programming-B": {
+        "lecturer": "Dr. Andreas",
+        "credits": 5,
+        "required_room": "Lab Computer",
+        "class": "B"
+    },
+    "Introduction to Information and Communication Technology-A": {
+        "lecturer": "Dipl.-Inf. Laura Mahendratta Tjahjono",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "A"
+    },
+    "Introduction to Information and Communication Technology-B": {
+        "lecturer": "Dipl.-Inf. Laura Mahendratta Tjahjono",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "B"
+    },
+    "Computer Organization and Architecture-A": {
+        "lecturer": "Trianggoro Wiradinata, Ph.D.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "A"
+    },
+    "Computer Organization and Architecture-B": {
+        "lecturer": "Trianggoro Wiradinata, Ph.D.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "B"
+    },
+    "Linear Algebra-A": {
+        "lecturer": "Stephanus Eko Wahyudi, S.T., M.Mm.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "A"
+    },
+    "Linear Algebra-B": {
+        "lecturer": "Stephanus Eko Wahyudi, S.T., M.Mm.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "B"
+    },
+    "Religion-A": {
+        "lecturer": "Caecilia Citra Lestari, S.Kom., M.Kom.",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "A"
+    },
+    "Religion-B": {
+        "lecturer": "Caecilia Citra Lestari, S.Kom., M.Kom.",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "B"
+    },
+    "Entrepreneurship Essentials-A": {
+        "lecturer": "Yuwono Marta Dinata, S.T., M.Eng.",
+        "credits": 3,
+        "required_room": "Studio",
+        "class": "A"
+    },
+    "Entrepreneurship Essentials-B": {
+        "lecturer": "Yuwono Marta Dinata, S.T., M.Eng.",
+        "credits": 3,
+        "required_room": "Studio",
+        "class": "B"
+    },
+    "Object-Oriented Programming-A": {
+        "lecturer": "Mychael Maoeretz Engel, S.Kom., M.Cs.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "A"
+    },
+    "Object-Oriented Programming-B": {
+        "lecturer": "Mychael Maoeretz Engel, S.Kom., M.Cs.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "B"
+    },
+    "Web Programming-A": {
+        "lecturer": "Theresia Ratih Dewi Saputri, S.Kom., M.Sc.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "A"
+    },
+    "Web Programming-B": {
+        "lecturer": "Theresia Ratih Dewi Saputri, S.Kom., M.Sc.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "B"
+    },
+    "Database-A": {
+        "lecturer": "Evan Tanuwijaya, S.Kom., M.Kom.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "A"
+    },
+    "Database-B": {
+        "lecturer": "Evan Tanuwijaya, S.Kom., M.Kom.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "B"
+    },
+    "Calculus-A": {
+        "lecturer": "Dr. Andreas",
+        "credits": 2,
+        "required_room": "Class Room",
+        "class": "A"
+    },
+    "Calculus-B": {
+        "lecturer": "Dr. Andreas",
+        "credits": 2,
+        "required_room": "Class Room",
+        "class": "B"
+    },
+    "Pancasila-A": {
+        "lecturer": "Dipl.-Inf. Laura Mahendratta Tjahjono",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "A"
+    },
+    "Pancasila-B": {
+        "lecturer": "Dipl.-Inf. Laura Mahendratta Tjahjono",
+        "credits": 2,
+        "required_room": "Seminar Room",
+        "class": "B"
+    },
+    "Menjadi Indonesia-A": {
+        "lecturer": "Trianggoro Wiradinata, Ph.D.",
+        "credits": 3,
+        "required_room": "Seminar Room",
+        "class": "A"
+    },
+    "Menjadi Indonesia-B": {
+        "lecturer": "Trianggoro Wiradinata, Ph.D.",
+        "credits": 3,
+        "required_room": "Seminar Room",
+        "class": "B"
+    },
+    "Visual Programming-A": {
+        "lecturer": "Stephanus Eko Wahyudi, S.T., M.Mm.",
+        "credits": 5,
+        "required_room": "Lab Computer",
+        "class": "A"
+    },
+    "Visual Programming-B": {
+        "lecturer": "Stephanus Eko Wahyudi, S.T., M.Mm.",
+        "credits": 5,
+        "required_room": "Lab Computer",
+        "class": "B"
+    },
+    "Web Development-A": {
+        "lecturer": "Caecilia Citra Lestari, S.Kom., M.Kom.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "A"
+    },
+    "Web Development-B": {
+        "lecturer": "Caecilia Citra Lestari, S.Kom., M.Kom.",
+        "credits": 4,
+        "required_room": "Lab Computer",
+        "class": "B"
+    },
+    "Operating System-A": {
+        "lecturer": "Yuwono Marta Dinata, S.T., M.Eng.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "A"
+    },
+    "Operating System-B": {
+        "lecturer": "Yuwono Marta Dinata, S.T., M.Eng.",
+        "credits": 3,
+        "required_room": "Class Room",
+        "class": "B"
+    }
+}

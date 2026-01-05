@@ -1,0 +1,37 @@
+{
+    "BATCH25": [
+        "Web Development-A",
+        "Operating System-A",
+        "Visual Programming-A",
+        "Entrepreneurship Essentials-A",
+        "Menjadi Indonesia-A"
+    ],
+    "BATCH26": [
+        "Web Programming-B",
+        "Database-B",
+        "Object-Oriented Programming-B",
+        "Computer Organization and Architecture-B",
+        "Calculus-B"
+    ],
+    "BATCH27": [
+        "Algorithm & Programming-A",
+        "Linear Algebra-A",
+        "Database-A",
+        "Object-Oriented Programming-A",
+        "Web Programming-A"
+    ],
+    "BATCH28": [
+        "Algorithm & Programming-B",
+        "Introduction to Information and Communication Technology-B",
+        "Religion-B",
+        "Pancasila-B",
+        "Calculus-B"
+    ],
+    "BATCH29": [
+        "Algorithm & Programming-A",
+        "Introduction to Information and Communication Technology-A",
+        "Religion-A",
+        "Pancasila-A",
+        "Linear Algebra-A"
+    ]
+}

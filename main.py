@@ -1,4 +1,5 @@
 import os
+import json
 from graph_core import (
     create_scheduling_graph,
     standard_greedy_coloring,
@@ -65,6 +66,9 @@ COURSE_DATA = {
     'MK29': {'lecturer': 'D14', 'credits': 5, 'required_room': 'R09', 'class': 'Joint'},
     'MK30': {'lecturer': 'D15', 'credits': 5, 'required_room': 'R10', 'class': 'Joint'},
 }
+# Import data from file
+with open('courses.json', 'r') as file:
+    COURSE_DATA = json.load(file)
 
 # --- STUDENT ENROLLMENT DATA ---
 # Mapping of students to their respective sets of enrolled courses
@@ -78,6 +82,10 @@ STUDENT_DATA = {
     'MHS107': {'MK27', 'MK29'},
     'MHS108': {'MK28', 'MK30'},
 }
+# Import data
+with open('curriculum.json', 'r') as file:
+    raw_data = json.load(file)
+    STUDENT_DATA = {batch: set(subjects) for batch, subjects in raw_data.items()}
 
 # --- MAIN EXECUTION LOGIC ---
 # Orchestrates the scheduling workflow with clear step-by-step progress logging
@@ -91,6 +99,13 @@ def run_scheduling_process():
         os.makedirs('output')
 
     print("\n--- 1. GRAPH CONSTRUCTION ---")
+    
+    # Check if all subjects in curriculum actually exist in course data
+    for batch, subjects in STUDENT_DATA.items():
+        for s in subjects:
+            if s not in COURSE_DATA:
+                print(f"[Error] Subject '{s}' in {batch} not found in COURSE_DATA keys!")
+    
     graph = create_scheduling_graph(COURSE_DATA, STUDENT_DATA)
     visualize_conflict_graph(graph, 'output/1_conflict_graph.png')
     print(f"[Log] Graph built with {len(graph.nodes)} nodes and {len(graph.edges)} conflict edges.")
