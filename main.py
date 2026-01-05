@@ -4,7 +4,8 @@ from exporters import export_master_csv, export_individual_schedules, export_lec
 from graph_core import (
     create_scheduling_graph,
     standard_greedy_coloring,
-    equitable_coloring_optimized
+    equitable_coloring_optimized,
+    calculate_daily_load
 )
 from visualization import (
     visualize_conflict_graph,
@@ -13,6 +14,7 @@ from visualization import (
     visualize_schedule_matrix,
     visualize_student_schedules
 )
+from config import CONFIG
 
 # DATA PERSISTENCE: JSON STORAGE MANAGER
 def manage_json_data(filename, data=None):
@@ -43,7 +45,7 @@ def bulk_import_interface():
             print("Invalid format. Use: MK01,D01,3,R01")
     return new_courses
 
-# CORE ENGINE: SCHEDULING WORKFLOW
+# CORE ENGINE: SCHEDULING WORKFLOW WITH REPORT STATISTICS
 def run_scheduling_process(courses, students):
     print("\n" + "="*50 + "\nUNIVERSITY SCHEDULING SYSTEM\n" + "="*50)
     if not os.path.exists('output'): os.makedirs('output')
@@ -51,22 +53,35 @@ def run_scheduling_process(courses, students):
     graph = create_scheduling_graph(courses, students)
     visualize_conflict_graph(graph, 'output/1_conflict_graph.png')
     
+    # PHASE 1: INITIAL GREEDY RESULTS (For Paper Baseline)
     initial_schedule = standard_greedy_coloring(graph)
     if len(initial_schedule) != len(graph.nodes):
         print("[Fatal] Insufficient slots for graph density.")
         return
 
+    initial_load = calculate_daily_load(graph, initial_schedule)
+    mk_counts = {day: 0 for day in CONFIG['DAYS']}
+    for course, (day, _) in initial_schedule.items(): mk_counts[day] += 1
+    
+    sks_vals = list(initial_load.values())
+    print("\n[REPORT DATA: INITIAL GREEDY]")
+    for day in CONFIG['DAYS']:
+        print(f"{day:10}: {mk_counts[day]:2} MK | Total {initial_load[day]:2} SKS")
+    print(f"SKS Max: {max(sks_vals)} | SKS Min: {min(sks_vals)} | Diff: {max(sks_vals)-min(sks_vals)}")
+    
+    visualize_credits_load(initial_load, 'output/2a_initial_load.png')
+    visualize_colored_graph(graph, initial_schedule, 'output/3a_colored_initial_schedule.png') 
+
+    # PHASE 2: OPTIMIZED RESULTS
     final_schedule, final_load = equitable_coloring_optimized(graph, initial_schedule, students)
 
-    # Graphical Reports
-    visualize_credits_load(final_load, 'output/2_final_credits_load.png')
-    visualize_colored_graph(graph, final_schedule, 'output/3_colored_schedule.png') 
+    # OUTPUT GENERATION
+    visualize_credits_load(final_load, 'output/2b_final_load.png')
+    visualize_colored_graph(graph, final_schedule, 'output/3b_colored_schedule.png') 
     
-    # Console Visualization
-    visualize_schedule_matrix(graph, final_schedule) 
-    visualize_student_schedules(students, final_schedule, graph)
+    # visualize_schedule_matrix(graph, final_schedule) 
+    # visualize_student_schedules(students, final_schedule, graph)
     
-    # CSV Exports (using exporters.py)
     export_master_csv(graph, final_schedule)
     export_individual_schedules(graph, final_schedule, students)
     export_lecturer_schedules(graph, final_schedule)
