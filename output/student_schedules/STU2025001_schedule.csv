@@ -1,0 +1,12 @@
+Time,Monday,Tuesday,Wednesday,Thursday,Friday
+07:30,,,,[START] ENG101 (R103),[START] MAT101 (R101)
+08:20,,,,[ENG101 Cont.],[MAT101 Cont.]
+09:10,,[START] DISC101 (R101),,,[MAT101 Cont.]
+10:00,,[DISC101 Cont.],,,[START] PHY101 (R102)
+10:50,,[DISC101 Cont.],,,[PHY101 Cont.]
+11:40,,,,,[PHY101 Cont.]
+12:30,,,,,[PHY101 Cont.]
+13:20,[START] PROG101 (LAB01),,,,
+14:10,[PROG101 Cont.],,,,
+15:00,[PROG101 Cont.],,,,
+15:50,[PROG101 Cont.],,,,

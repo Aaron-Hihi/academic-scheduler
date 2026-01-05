@@ -1,0 +1,12 @@
+Time,Monday,Tuesday,Wednesday,Thursday,Friday
+07:30,,,,,
+08:20,[CLASS] OS201 (R102),,,,
+09:10,[OS201 Cont.],,,,
+10:00,[OS201 Cont.],,,,[CLASS] PHY101 (R102)
+10:50,,,,,[PHY101 Cont.]
+11:40,[CLASS] LOG102 (R103),,,,[PHY101 Cont.]
+12:30,[LOG102 Cont.],,,,[PHY101 Cont.]
+13:20,[CLASS] ARCH302 (R101),,,,
+14:10,[ARCH302 Cont.],,[CLASS] DIST402 (R101),,
+15:00,[ARCH302 Cont.],,[DIST402 Cont.],,
+15:50,,,[DIST402 Cont.],,

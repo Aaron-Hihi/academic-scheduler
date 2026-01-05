@@ -1,0 +1,12 @@
+Time,Monday,Tuesday,Wednesday,Thursday,Friday
+07:30,,,,,
+08:20,,,,,
+09:10,[START] SEC301 (LAB03),[START] AI301 (LAB02),,,
+10:00,[SEC301 Cont.],[AI301 Cont.],,,[START] CLOUD302 (LAB03)
+10:50,[SEC301 Cont.],[AI301 Cont.],,,[CLOUD302 Cont.]
+11:40,,[AI301 Cont.],,,[CLOUD302 Cont.]
+12:30,,,,[START] ML302 (LAB02),
+13:20,[START] ARCH302 (R101),,,[ML302 Cont.],
+14:10,[ARCH302 Cont.],,,[ML302 Cont.],
+15:00,[ARCH302 Cont.],,,[ML302 Cont.],
+15:50,,,,,

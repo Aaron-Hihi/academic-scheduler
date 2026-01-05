@@ -1,0 +1,12 @@
+Time,Monday,Tuesday,Wednesday,Thursday,Friday
+07:30,,,,,[START] ALGO201 (LAB01)
+08:20,[START] OS201 (R102),,,,[ALGO201 Cont.]
+09:10,[OS201 Cont.],,,,[ALGO201 Cont.]
+10:00,[OS201 Cont.],,,[START] DB201 (LAB02),[ALGO201 Cont.]
+10:50,,,,[DB201 Cont.],
+11:40,,,,[DB201 Cont.],
+12:30,,,,,
+13:20,,,,,[START] NET201 (LAB03)
+14:10,,[START] STAT201 (R101),,,[NET201 Cont.]
+15:00,,[STAT201 Cont.],,,[NET201 Cont.]
+15:50,,[STAT201 Cont.],,,

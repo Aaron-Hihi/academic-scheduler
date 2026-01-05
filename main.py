@@ -1,9 +1,10 @@
 import os
+import json
+from exporters import export_master_csv, export_individual_schedules, export_lecturer_schedules
 from graph_core import (
     create_scheduling_graph,
     standard_greedy_coloring,
-    equitable_coloring_optimized,
-    calculate_daily_load
+    equitable_coloring_optimized
 )
 from visualization import (
     visualize_conflict_graph,
@@ -13,114 +14,100 @@ from visualization import (
     visualize_student_schedules
 )
 
-# --- COURSE DATA DEFINITION ---
-# Comprehensive list of courses with lecturer, credits, and room requirements
-COURSE_DATA = {
-    'MK01-A': {'lecturer': 'D01', 'credits': 3, 'required_room': 'R01', 'class': 'A'},
-    'MK01-B': {'lecturer': 'D01', 'credits': 3, 'required_room': 'R01', 'class': 'B'},
-    'MK02-A': {'lecturer': 'D02', 'credits': 3, 'required_room': 'R02', 'class': 'A'},
-    'MK02-B': {'lecturer': 'D02', 'credits': 3, 'required_room': 'R02', 'class': 'B'},
-    'MK03-A': {'lecturer': 'D03', 'credits': 3, 'required_room': 'R03', 'class': 'A'},
-    'MK03-B': {'lecturer': 'D03', 'credits': 3, 'required_room': 'R03', 'class': 'B'},
-    'MK04-A': {'lecturer': 'D04', 'credits': 3, 'required_room': 'R04', 'class': 'A'},
-    'MK04-B': {'lecturer': 'D04', 'credits': 3, 'required_room': 'R04', 'class': 'B'},
-    'MK05-A': {'lecturer': 'D05', 'credits': 3, 'required_room': 'R05', 'class': 'A'},
-    'MK05-B': {'lecturer': 'D05', 'credits': 3, 'required_room': 'R05', 'class': 'B'},
-    'MK06-A': {'lecturer': 'D06', 'credits': 3, 'required_room': 'R06', 'class': 'A'},
-    'MK06-B': {'lecturer': 'D06', 'credits': 3, 'required_room': 'R06', 'class': 'B'},
-    'MK07-A': {'lecturer': 'D07', 'credits': 3, 'required_room': 'R07', 'class': 'A'},
-    'MK07-B': {'lecturer': 'D07', 'credits': 3, 'required_room': 'R07', 'class': 'B'},
-    'MK08-A': {'lecturer': 'D08', 'credits': 3, 'required_room': 'R08', 'class': 'A'},
-    'MK08-B': {'lecturer': 'D08', 'credits': 3, 'required_room': 'R08', 'class': 'B'},
-    'MK09-A': {'lecturer': 'D09', 'credits': 3, 'required_room': 'R09', 'class': 'A'},
-    'MK09-B': {'lecturer': 'D09', 'credits': 3, 'required_room': 'R09', 'class': 'B'},
-    'MK10-A': {'lecturer': 'D10', 'credits': 3, 'required_room': 'R10', 'class': 'A'},
-    'MK10-B': {'lecturer': 'D10', 'credits': 3, 'required_room': 'R10', 'class': 'B'},
-    'MK11-A': {'lecturer': 'D11', 'credits': 3, 'required_room': 'R01', 'class': 'A'}, 
-    'MK11-B': {'lecturer': 'D11', 'credits': 3, 'required_room': 'R01', 'class': 'B'},
-    'MK12-A': {'lecturer': 'D12', 'credits': 3, 'required_room': 'R02', 'class': 'A'}, 
-    'MK12-B': {'lecturer': 'D12', 'credits': 3, 'required_room': 'R02', 'class': 'B'},
-    'MK13-A': {'lecturer': 'D13', 'credits': 4, 'required_room': 'R03', 'class': 'A'}, 
-    'MK13-B': {'lecturer': 'D13', 'credits': 4, 'required_room': 'R03', 'class': 'B'},
-    'MK14-A': {'lecturer': 'D14', 'credits': 4, 'required_room': 'R04', 'class': 'A'}, 
-    'MK14-B': {'lecturer': 'D14', 'credits': 4, 'required_room': 'R04', 'class': 'B'},
-    'MK15-A': {'lecturer': 'D15', 'credits': 4, 'required_room': 'R05', 'class': 'A'}, 
-    'MK15-B': {'lecturer': 'D15', 'credits': 4, 'required_room': 'R05', 'class': 'B'},
-    'MK16-A': {'lecturer': 'D01', 'credits': 4, 'required_room': 'R06', 'class': 'A'}, 
-    'MK16-B': {'lecturer': 'D01', 'credits': 4, 'required_room': 'R06', 'class': 'B'},
-    'MK17-A': {'lecturer': 'D02', 'credits': 4, 'required_room': 'R07', 'class': 'A'}, 
-    'MK17-B': {'lecturer': 'D02', 'credits': 4, 'required_room': 'R07', 'class': 'B'},
-    'MK18-A': {'lecturer': 'D03', 'credits': 4, 'required_room': 'R08', 'class': 'A'}, 
-    'MK18-B': {'lecturer': 'D03', 'credits': 4, 'required_room': 'R08', 'class': 'B'},
-    'MK19': {'lecturer': 'D04', 'credits': 5, 'required_room': 'R09', 'class': 'Joint'}, 
-    'MK20': {'lecturer': 'D05', 'credits': 5, 'required_room': 'R10', 'class': 'Joint'},
-    'MK21': {'lecturer': 'D06', 'credits': 5, 'required_room': 'R01', 'class': 'Joint'},
-    'MK22': {'lecturer': 'D07', 'credits': 5, 'required_room': 'R02', 'class': 'Joint'},
-    'MK23': {'lecturer': 'D08', 'credits': 5, 'required_room': 'R03', 'class': 'Joint'},
-    'MK24': {'lecturer': 'D09', 'credits': 5, 'required_room': 'R04', 'class': 'Joint'},
-    'MK25': {'lecturer': 'D10', 'credits': 5, 'required_room': 'R05', 'class': 'Joint'},
-    'MK26': {'lecturer': 'D11', 'credits': 5, 'required_room': 'R06', 'class': 'Joint'},
-    'MK27': {'lecturer': 'D12', 'credits': 5, 'required_room': 'R07', 'class': 'Joint'},
-    'MK28': {'lecturer': 'D13', 'credits': 5, 'required_room': 'R08', 'class': 'Joint'},
-    'MK29': {'lecturer': 'D14', 'credits': 5, 'required_room': 'R09', 'class': 'Joint'},
-    'MK30': {'lecturer': 'D15', 'credits': 5, 'required_room': 'R10', 'class': 'Joint'},
-}
+# DATA PERSISTENCE: JSON STORAGE MANAGER
+def manage_json_data(filename, data=None):
+    try:
+        if data is None:
+            if not os.path.exists(filename): return {}
+            with open(filename, 'r', encoding='utf-8') as f: return json.load(f)
+        with open(filename, 'w', encoding='utf-8') as f: json.dump(data, f, indent=4)
+        return data
+    except Exception as e:
+        print(f"[Error] Storage error: {e}")
+        return {}
 
-# --- STUDENT ENROLLMENT DATA ---
-# Mapping of students to their respective sets of enrolled courses
-STUDENT_DATA = {
-    'MHS101': {'MK01-A', 'MK02-A', 'MK03-A', 'MK04-A', 'MK13-A', 'MK14-A'},
-    'MHS102': {'MK05-B', 'MK06-B', 'MK07-B', 'MK08-B', 'MK15-B', 'MK16-B'},
-    'MHS103': {'MK09-A', 'MK10-A', 'MK17-A', 'MK19', 'MK20'}, 
-    'MHS104': {'MK11-B', 'MK12-B', 'MK18-B', 'MK21', 'MK22'}, 
-    'MHS105': {'MK13-A', 'MK15-A', 'MK23', 'MK24'},
-    'MHS106': {'MK14-B', 'MK16-B', 'MK25', 'MK26'}, 
-    'MHS107': {'MK27', 'MK29'},
-    'MHS108': {'MK28', 'MK30'},
-}
+# INTERFACE: BULK DATA ENTRY
+def bulk_import_interface():
+    print("\n--- BULK IMPORT TOOL ---")
+    print("Format: CODE,LECTURER,CREDITS,ROOM (Type 'DONE' to finish)")
+    new_courses = {}
+    while True:
+        line = input("> ").strip()
+        if not line or line.upper() == 'DONE': break
+        try:
+            parts = [p.strip() for p in line.split(',')]
+            if len(parts) != 4: raise ValueError("Fields mismatch")
+            code, lec, cred, room = parts
+            new_courses[code.upper()] = {'lecturer': lec.upper(), 'credits': int(cred), 'required_room': room.upper()}
+        except ValueError:
+            print("Invalid format. Use: MK01,D01,3,R01")
+    return new_courses
 
-# --- MAIN EXECUTION LOGIC ---
-# Orchestrates the scheduling workflow with clear step-by-step progress logging
-def run_scheduling_process():
-    print("=============================================")
-    print("=== STARTING UNIVERSITY SCHEDULING SYSTEM ===")
-    print("=============================================")
+# CORE ENGINE: SCHEDULING WORKFLOW
+def run_scheduling_process(courses, students):
+    print("\n" + "="*50 + "\nUNIVERSITY SCHEDULING SYSTEM\n" + "="*50)
+    if not os.path.exists('output'): os.makedirs('output')
 
-    if not os.path.exists('output'):
-        print("[System] Creating output directory...")
-        os.makedirs('output')
-
-    print("\n--- 1. GRAPH CONSTRUCTION ---")
-    graph = create_scheduling_graph(COURSE_DATA, STUDENT_DATA)
+    graph = create_scheduling_graph(courses, students)
     visualize_conflict_graph(graph, 'output/1_conflict_graph.png')
-    print(f"[Log] Graph built with {len(graph.nodes)} nodes and {len(graph.edges)} conflict edges.")
-
-    print("\n--- 2. INITIAL SCHEDULING (GREEDY COLORING) ---")
-    initial_schedule = standard_greedy_coloring(graph)
     
+    initial_schedule = standard_greedy_coloring(graph)
     if len(initial_schedule) != len(graph.nodes):
-        print("[Fatal] Could not schedule all courses. Terminating process.")
+        print("[Fatal] Insufficient slots for graph density.")
         return
 
-    initial_load = calculate_daily_load(graph, initial_schedule)
-    print(f"[Log] Initial scheduling complete. Daily credit counts: {initial_load}")
+    final_schedule, final_load = equitable_coloring_optimized(graph, initial_schedule, students)
 
-    print("\n--- 3. LOAD BALANCING OPTIMIZATION ---")
-    final_schedule, final_load = equitable_coloring_optimized(graph, initial_schedule, STUDENT_DATA)
-
-    print("\n--- 4. FINALIZING REPORTS ---")
+    # Graphical Reports
     visualize_credits_load(final_load, 'output/2_final_credits_load.png')
     visualize_colored_graph(graph, final_schedule, 'output/3_colored_schedule.png') 
     
-    print("\n[DISPLAY] University Master Matrix:")
+    # Console Visualization
     visualize_schedule_matrix(graph, final_schedule) 
+    visualize_student_schedules(students, final_schedule, graph)
     
-    print("\n[DISPLAY] Individual Student Timetables:")
-    visualize_student_schedules(STUDENT_DATA, final_schedule, graph)
+    # CSV Exports (using exporters.py)
+    export_master_csv(graph, final_schedule)
+    export_individual_schedules(graph, final_schedule, students)
+    export_lecturer_schedules(graph, final_schedule)
 
-    print("\n================================================")
-    print("=== PROCESS COMPLETE. CHECK 'output/' FOLDER ===")
-    print("================================================")
+# MAIN INTERFACE: TERMINAL MENU
+def main_terminal_interface():
+    courses = manage_json_data('courses.json')
+    students = manage_json_data('students.json')
+
+    while True:
+        print(f"\nDB: {len(courses)} Courses | {len(students)} Students")
+        print("1. Add Course\n2. Bulk Import\n3. Manage Students\n4. Reset DB\n5. RUN SCHEDULER\n6. Exit")
+        choice = input("Option: ")
+
+        if choice == '1':
+            try:
+                code, lec = input("Code: ").upper(), input("Lecturer: ").upper()
+                cred, rm = int(input("Credits: ")), input("Room: ").upper()
+                courses[code] = {'lecturer': lec, 'credits': cred, 'required_room': rm}
+                manage_json_data('courses.json', courses)
+            except ValueError: print("Invalid SKS.")
+        elif choice == '2':
+            courses.update(bulk_import_interface())
+            manage_json_data('courses.json', courses)
+        elif choice == '3':
+            sid = input("Student ID: ").upper()
+            codes = input("Course Codes (comma-separated): ").upper().split(',')
+            valid = [c.strip() for c in codes if c.strip() in courses]
+            students[sid] = list(set(valid))
+            manage_json_data('students.json', students)
+        elif choice == '4':
+            if input("Confirm reset? (y/n): ").lower() == 'y':
+                courses, students = {}, {}
+                for f in ['courses.json', 'students.json']:
+                    if os.path.exists(f): os.remove(f)
+        elif choice == '5':
+            if courses and students:
+                student_sets = {k: set(v) for k, v in students.items()}
+                run_scheduling_process(courses, student_sets)
+            else: print("Database incomplete.")
+        elif choice == '6': break
 
 if __name__ == '__main__':
-    run_scheduling_process()
+    main_terminal_interface()

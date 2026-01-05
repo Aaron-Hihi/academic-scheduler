@@ -19,8 +19,13 @@ def create_scheduling_graph(course_data, student_data):
     course_list = list(course_data.keys())
     for i in range(len(course_list)):
         for j in range(i + 1, len(course_list)):
+            #print("\n=====================================")
+            #print(f" > Iteration i = {i}, j = {j}")
             c1, c2 = course_list[i], course_list[j]
             d1, d2 = course_data[c1], course_data[c2]
+            
+            #print(f"Course list {i} = {course_list[i]}\nCourse list {j} = {course_list[j]}\n\n")
+            #print(f"Course list {c1} = {course_data[c1]}\nCourse list {c2} = {course_data[c2]}\n\n")
             
             reasons = []
             if d1['lecturer'] == d2['lecturer']: reasons.append("Lecturer")
@@ -31,6 +36,7 @@ def create_scheduling_graph(course_data, student_data):
                     break
             
             if reasons:
+                #print(f"\nReason for change: {reasons}")
                 graph.add_edge(c1, c2, reason=", ".join(reasons))
     return graph
 
